@@ -86,11 +86,18 @@ df_cleaned %>%
   ggplot(aes(x = gdp_per_capita, y = global_hunger_index_2021)) +
   geom_point(aes(size = population_historical_estimates, colour = continent),
              alpha = 0.8) +
-  labs(x = "GDP Per Capita", y = "Hunger Index") +
+  ### Creating a linear model to show the correlation
+  geom_smooth(method = "lm", 
+              se = FALSE, 
+              colour = "#555555",
+              linetype = "longdash") +
+  labs(x = "GDP Per Capita", 
+       y = "Hunger Index") +
   scale_size_continuous(breaks = legend_circle_breaks, 
                         range = c(1, 17), 
                         labels = label_number(scale_cut = cut_short_scale())) +
-  scale_y_continuous(expand = expansion(mult = c(0.075, 0.05))) +
+  scale_y_continuous(expand = expansion(mult = c(0.05, 0.05)),
+                     limits = c(0, 50)) +
   scale_x_continuous(labels = label_number(scale_cut = cut_short_scale())) +
   guides(size = guide_legend(title = "Population",
                              order = 1,
@@ -99,8 +106,6 @@ df_cleaned %>%
                                order = 2,
                                override.aes = list(size = 4,
                                                    alpha = 0.75)))
-  
-### Create a linear model to show the correlation
 
 ### Check if there is some relationship between global gdp and hungry index
 ### Check where (continent) the hungry is still strong (maybe Africa)
