@@ -67,7 +67,10 @@ df_cleaned <- df_hunger_gdp %>%
          global_hunger_index_2021,
          population_historical_estimates) %>% 
   merge(y = df_continents, by = "code", all.x = TRUE) %>% 
-  merge(y = df_gdp, by = "code", all.x = TRUE)
+  merge(y = df_gdp, by = "code", all.x = TRUE) %>% 
+  mutate(
+    gdp = population_historical_estimates * gdp_per_capita
+  )
 
 ### There are some countries that don't have value in GDP column
 countries_without_gdp <- df_cleaned %>%
@@ -98,7 +101,7 @@ df_cleaned %>%
                         labels = label_number(scale_cut = cut_short_scale())) +
   scale_y_continuous(expand = expansion(mult = c(0.05, 0.05)),
                      limits = c(0, 50)) +
-  scale_x_continuous(labels = label_number(scale_cut = cut_short_scale())) +
+  scale_x_continuous(labels = label_dollar()) +
   guides(size = guide_legend(title = "Population",
                              order = 1,
                              override.aes = list(alpha = 0.25)),
@@ -107,7 +110,34 @@ df_cleaned %>%
                                override.aes = list(size = 4,
                                                    alpha = 0.75)))
 
-### Check if there is some relationship between global gdp and hungry index
+### Check if there is some relationship between total gdp and hungry index
+### Maybe not very useful
+df_cleaned %>% 
+  filter(!is.na(gdp_per_capita)) %>%
+  ggplot(aes(x = gdp, y = global_hunger_index_2021)) +
+  geom_point(aes(size = population_historical_estimates, colour = continent),
+             alpha = 0.8) +
+  ### Creating a linear model to show the correlation
+  geom_smooth(method = "lm", 
+              se = FALSE, 
+              colour = "#555555",
+              linetype = "longdash") +
+  labs(x = "GDP", 
+       y = "Hunger Index") +
+  scale_size_continuous(breaks = legend_circle_breaks, 
+                        range = c(1, 17), 
+                        labels = label_number(scale_cut = cut_short_scale())) +
+  scale_y_continuous(expand = expansion(mult = c(0.05, 0.05)),
+                     limits = c(0, 50)) +
+  scale_x_continuous(labels = label_dollar(scale_cut = cut_short_scale())) +
+  guides(size = guide_legend(title = "Population",
+                             order = 1,
+                             override.aes = list(alpha = 0.25)),
+         colour = guide_legend(title = "Continent",
+                               order = 2,
+                               override.aes = list(size = 4,
+                                                   alpha = 0.75)))
+
 ### Check where (continent) the hungry is still strong (maybe Africa)
 ### Check how this indexes are evolving through years
 
