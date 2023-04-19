@@ -1,5 +1,32 @@
 library(dplyr)
 library(janitor)
+library(ggplot2)
+library(scales)
+
+app_colours <- list(
+  title = "#616161",
+  axis = "#9e9e9e",
+  main = "#1976d2",
+  no_emphasis = "#757575",
+  divergent = "#f57c00",
+  line_main = "#42a5f5",
+  line_complementary = "#78909c"
+)
+
+theme_minimalistic <- function() {
+  theme_classic() +
+    theme(plot.title = element_text(hjust = 0, colour = app_colours$title),
+          plot.title.position = "plot",
+          axis.line = element_line(colour = app_colours$axis),
+          axis.ticks = element_line(colour = app_colours$axis),
+          axis.text = element_text(colour = app_colours$axis),
+          axis.title = element_text(colour = app_colours$axis),
+          panel.background = element_rect(fill = "transparent"),
+          plot.background = element_rect(fill = "transparent", color = NA)
+    )
+}
+
+theme_set(theme_minimalistic())
 
 df_hunger <- read.csv("data/global-hunger-index.csv", 
                       check.names = FALSE) %>% 
@@ -47,7 +74,33 @@ countries_without_gdp <- df_cleaned %>%
   filter(is.na(gdp_per_capita)) %>%
   select(code, entity)
 
-### Check if there is some relationship between gdp per capita and hungry index
+### Check if there is some correlation between gdp per capita and hungry index
+legend_circle_breaks <- as.integer(
+  quantile(df_cleaned$population_historical_estimates, 
+           prob = c(0.5, 0.98, 0.99))
+) %>% 
+  signif(1)
+
+df_cleaned %>% 
+  filter(!is.na(gdp_per_capita)) %>%
+  ggplot(aes(x = gdp_per_capita, y = global_hunger_index_2021)) +
+  geom_point(aes(size = population_historical_estimates, colour = continent),
+             alpha = 0.8) +
+  labs(x = "GDP Per Capita", y = "Hunger Index") +
+  scale_size_continuous(breaks = legend_circle_breaks, 
+                        range = c(1, 17), 
+                        labels = label_number(scale_cut = cut_short_scale())) +
+  scale_y_continuous(expand = expansion(mult = c(0.075, 0.05))) +
+  scale_x_continuous(labels = label_number(scale_cut = cut_short_scale())) +
+  guides(size = guide_legend(title = "Population",
+                             order = 1,
+                             override.aes = list(alpha = 0.25)),
+         colour = guide_legend(title = "Continent",
+                               order = 2,
+                               override.aes = list(size = 4,
+                                                   alpha = 0.75)))
+  
+### Create a linear model to show the correlation
 
 ### Check if there is some relationship between global gdp and hungry index
 ### Check where (continent) the hungry is still strong (maybe Africa)
