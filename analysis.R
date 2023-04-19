@@ -18,7 +18,6 @@ max(df_hunger$global_hunger_index_2021)
 
 ##################################### CLEANING
 ### Creating a dataframe that shows only data from countries that have a hungry index
-n_distinct(df_hunger$entity)
 
 # Countries continents
 df_continents <- df_hunger_gdp %>% 
@@ -39,12 +38,15 @@ df_cleaned <- df_hunger_gdp %>%
   select(entity, 
          code,
          global_hunger_index_2021,
-         population_historical_estimates)
-
-df_cleaned %>% 
+         population_historical_estimates) %>% 
   merge(y = df_continents, by = "code", all.x = TRUE) %>% 
-  merge(y = df_gdp, by = "code", all.x = TRUE) %>% 
-  filter(is.na(gdp_per_capita))
+  merge(y = df_gdp, by = "code", all.x = TRUE)
+
+### There are some countries that don't have value in GDP column
+countries_without_gdp <- df_cleaned %>%
+  filter(is.na(gdp_per_capita)) %>%
+  select(code, entity)
+
 ### Check if there is some relationship between gdp per capita and hungry index
 
 ### Check if there is some relationship between global gdp and hungry index
