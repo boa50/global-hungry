@@ -70,8 +70,6 @@ df_cleaned <- df_hunger_gdp %>%
   merge(y = df_continents, by = "code", all.x = TRUE) %>%
   mutate(gdp = population * gdp_per_capita)
 
-### Removes the countries that only have one year
-
 ### There are some countries that don't have value in GDP column
 countries_without_gdp <- df_cleaned %>%
   filter(is.na(gdp_per_capita)) %>%
@@ -85,6 +83,7 @@ legend_circle_breaks <- as.integer(
 
 df_cleaned %>% 
   filter(year == 2021) %>% 
+  # filter(continent == "Africa") %>%
   filter(!is.na(gdp_per_capita)) %>%
   ggplot(aes(x = gdp_per_capita, y = hunger_index)) +
   geom_point(aes(size = population, colour = continent),
@@ -100,8 +99,9 @@ df_cleaned %>%
                         range = c(1, 17), 
                         labels = label_number(scale_cut = cut_short_scale())) +
   scale_y_continuous(expand = expansion(mult = c(0.05, 0)),
-                     limits = c(0, 50)) +
-  scale_x_continuous(labels = label_dollar()) +
+                     limits = c(0, 70)) +
+  scale_x_continuous(labels = label_dollar(),
+                     limits = c(0, 60000)) +
   guides(size = guide_legend(title = "Population",
                              order = 1,
                              override.aes = list(alpha = 0.25)),
@@ -142,7 +142,35 @@ df_cleaned %>%
 ### Check where (continent) the hungry is still strong (maybe Africa)
 ### and check how this indexes are evolving through years
 
+# Remove the countries that only have one year
+sporadic_countries <- df_cleaned %>% 
+  group_by(code) %>% 
+  summarize(n = n()) %>% 
+  filter(n < 4) %>% 
+  pull(code)
 
+# Get the average hunger index for each country
+df_cleaned %>% 
+  # filter(!(code %in% sporadic_countries)) %>%
+  group_by(continent, year) %>% 
+  summarise(hunger_index = mean(hunger_index)) %>% 
+  ggplot(aes(x = year, 
+             y = hunger_index, 
+             colour = continent,
+             label = label_number(accuracy = 1)(hunger_index))) +
+  geom_line() +
+  geom_point(data = . %>% filter(year %in% c(min(.$year), max(.$year))),
+             size = 3) +
+  geom_text(data = . %>% filter(year == min(.$year)), nudge_x = -1) +
+  geom_text(data = . %>% filter(year == max(.$year)), nudge_x = 1) +
+  labs(x = "Year", 
+       y = "Hunger Index") +
+  scale_x_continuous(breaks = unique(df_cleaned$year)) +
+  guides(colour = guide_legend(title = "Continent",
+                               override.aes = list(size = 4,
+                                                   alpha = 0.75)))
+
+### Put a world line to show the world average
 ### Define the standard colours to all continents
 
 ### Check why some countries don't have a hungry index
