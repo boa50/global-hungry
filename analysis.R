@@ -6,7 +6,7 @@ library(scales)
 
 app_colours <- list(
   title = "#616161",
-  axis = "#9e9e9e",
+  axis = "#757575",
   main = "#1976d2",
   no_emphasis = "#757575",
   divergent = "#f57c00",
@@ -43,13 +43,6 @@ df_hunger <- read.csv("data/global-hunger-index.csv",
 df_hunger_gdp <- read.csv("data/global-hunger-index-vs-gdp-per-capita.csv", 
                           check.names = FALSE) %>% 
   clean_names()
-
-# continent_colours <- list("Africa" = "#f0828a",
-#                           "Asia" = "#549ec4",
-#                           "Europe" = "#a86464",
-#                           "North America" = "#369482",
-#                           "South America" = "#5ce094",
-#                           "Oceania" = "#5945a1")
 
 ### Check the minimum value of the index
 min(df_hunger$global_hunger_index_2021) # 2.5
@@ -116,14 +109,61 @@ df_cleaned %>%
                      limits = c(0, 70)) +
   scale_x_continuous(labels = label_dollar(),
                      limits = c(0, 60000)) +
-  scale_colour_manual(values = app_colours$continent) +
+  scale_colour_manual(breaks = names(app_colours$continent),
+                      values = app_colours$continent) +
   guides(size = guide_legend(title = "Population",
                              order = 1,
-                             override.aes = list(alpha = 0.25)),
+                             override.aes = list(shape = 1,
+                                                 colour = app_colours$no_emphasis)),
          colour = guide_legend(title = "Continent",
                                order = 2,
                                override.aes = list(size = 4,
-                                                   alpha = 0.75)))
+                                                   shape = 15)))
+
+### Check where (continent) the hungry is still strong (maybe Africa)
+### and check how this indexes are evolving through years
+
+# Remove the countries that only have one year
+sporadic_countries <- df_cleaned %>% 
+  group_by(code) %>% 
+  summarize(n = n()) %>% 
+  filter(n < 4) %>% 
+  pull(code)
+
+# Get the average hunger index for each country
+df_cleaned %>% 
+  # filter(!(code %in% sporadic_countries)) %>%
+  group_by(continent, year) %>% 
+  summarise(hunger_index = mean(hunger_index)) %>% 
+  ggplot(aes(x = year, 
+             y = hunger_index, 
+             colour = continent,
+             label = label_number(accuracy = 1)(hunger_index))) +
+  geom_line(key_glyph = "point") +
+  geom_point(data = . %>% filter(year %in% c(min(.$year), max(.$year))),
+             size = 3) +
+  geom_text(data = . %>% filter(year == min(.$year)), 
+            nudge_x = -1,
+            key_glyph = "point") +
+  geom_text(data = . %>% filter(year == max(.$year)), 
+            nudge_x = 1,
+            key_glyph = "point") +
+  labs(x = "Year", 
+       y = "Hunger Index") +
+  scale_x_continuous(breaks = unique(df_cleaned$year)) +
+  scale_colour_manual(breaks = names(app_colours$continent),
+                      values = app_colours$continent) +
+  guides(colour = guide_legend(title = "Continent",
+                               override.aes = list(size = 4,
+                                                   shape = 15)))
+
+### Put a world line to show the world average
+### Standardize the font families
+
+### Check why some countries don't have a hungry index
+# According to the origin https://www.globalhungerindex.org/pdf/en/2021.pdf, some
+# countries don't have theses values because data to foment the index is not
+# collected (mainly in high-income countries)
 
 ### Check if there is some relationship between total gdp and hungry index
 ### Maybe not very useful
@@ -154,43 +194,3 @@ df_cleaned %>%
 #                                order = 2,
 #                                override.aes = list(size = 4,
 #                                                    alpha = 0.75)))
-
-### Check where (continent) the hungry is still strong (maybe Africa)
-### and check how this indexes are evolving through years
-
-# Remove the countries that only have one year
-sporadic_countries <- df_cleaned %>% 
-  group_by(code) %>% 
-  summarize(n = n()) %>% 
-  filter(n < 4) %>% 
-  pull(code)
-
-# Get the average hunger index for each country
-df_cleaned %>% 
-  # filter(!(code %in% sporadic_countries)) %>%
-  group_by(continent, year) %>% 
-  summarise(hunger_index = mean(hunger_index)) %>% 
-  ggplot(aes(x = year, 
-             y = hunger_index, 
-             colour = continent,
-             label = label_number(accuracy = 1)(hunger_index))) +
-  geom_line() +
-  geom_point(data = . %>% filter(year %in% c(min(.$year), max(.$year))),
-             size = 3) +
-  geom_text(data = . %>% filter(year == min(.$year)), nudge_x = -1) +
-  geom_text(data = . %>% filter(year == max(.$year)), nudge_x = 1) +
-  labs(x = "Year", 
-       y = "Hunger Index") +
-  scale_x_continuous(breaks = unique(df_cleaned$year)) +
-  scale_colour_manual(values = app_colours$continent) +
-  guides(colour = guide_legend(title = "Continent",
-                               override.aes = list(size = 4,
-                                                   alpha = 0.75)))
-
-### Put a world line to show the world average
-### Standardize the font families
-
-### Check why some countries don't have a hungry index
-# According to the origin https://www.globalhungerindex.org/pdf/en/2021.pdf, some
-# countries don't have theses values because data to foment the index is not
-# collected (mainly in high-income countries)
