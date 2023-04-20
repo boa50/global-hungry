@@ -100,7 +100,8 @@ df_cleaned %>%
               se = FALSE, 
               colour = app_colours$correlation_line,
               linetype = "longdash") +
-  labs(x = "GDP Per Capita", 
+  labs(title = "Hunger index correlation with GDP per capita in 2021",
+       x = "GDP Per Capita", 
        y = "Hunger Index") +
   scale_size_continuous(breaks = legend_circle_breaks, 
                         range = c(1, 17), 
@@ -154,7 +155,8 @@ df_cleaned %>%
   geom_text(data = . %>% filter(year == max(.$year)), 
             nudge_x = 1,
             key_glyph = "point") +
-  labs(x = "Year", 
+  labs(title = "Hunger index changes throughout the years",
+       x = "Year", 
        y = "Hunger Index") +
   scale_x_continuous(breaks = unique(df_cleaned$year)) +
   scale_colour_manual(breaks = names(app_colours$continent),
@@ -164,7 +166,7 @@ df_cleaned %>%
                                                    shape = 15)))
 
 ### Standardize the font families
-### Create chart titles
+### Put the data source and how GDP per capita is calculated
 
 ### Check why some countries don't have a hungry index
 # According to the origin https://www.globalhungerindex.org/pdf/en/2021.pdf, some
