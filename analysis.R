@@ -140,6 +140,12 @@ df_cleaned %>%
              colour = continent,
              label = label_number(accuracy = 1)(hunger_index))) +
   geom_line(key_glyph = "point") +
+  ### Put a world line to show the world tendency
+  geom_smooth(data = df_cleaned,
+              method = "lm", 
+              se = FALSE, 
+              colour = app_colours$correlation_line,
+              linetype = "longdash") +
   geom_point(data = . %>% filter(year %in% c(min(.$year), max(.$year))),
              size = 3) +
   geom_text(data = . %>% filter(year == min(.$year)), 
@@ -157,8 +163,8 @@ df_cleaned %>%
                                override.aes = list(size = 4,
                                                    shape = 15)))
 
-### Put a world line to show the world average
 ### Standardize the font families
+### Create chart titles
 
 ### Check why some countries don't have a hungry index
 # According to the origin https://www.globalhungerindex.org/pdf/en/2021.pdf, some
