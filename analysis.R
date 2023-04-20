@@ -11,7 +11,15 @@ app_colours <- list(
   no_emphasis = "#757575",
   divergent = "#f57c00",
   line_main = "#42a5f5",
-  line_complementary = "#78909c"
+  line_complementary = "#78909c",
+  correlation_line = "#555555",
+  ### Define the standard colours to all continents
+  continent = c("Africa" = "#f0828a",
+                "Asia" = "#549ec4",
+                "Europe" = "#a86464",
+                "North America" = "#369482",
+                "South America" = "#5ce094",
+                "Oceania" = "#5945a1")
 )
 
 theme_minimalistic <- function() {
@@ -36,6 +44,12 @@ df_hunger_gdp <- read.csv("data/global-hunger-index-vs-gdp-per-capita.csv",
                           check.names = FALSE) %>% 
   clean_names()
 
+# continent_colours <- list("Africa" = "#f0828a",
+#                           "Asia" = "#549ec4",
+#                           "Europe" = "#a86464",
+#                           "North America" = "#369482",
+#                           "South America" = "#5ce094",
+#                           "Oceania" = "#5945a1")
 
 ### Check the minimum value of the index
 min(df_hunger$global_hunger_index_2021) # 2.5
@@ -91,7 +105,7 @@ df_cleaned %>%
   ### Creating a linear model to show the correlation
   geom_smooth(method = "lm", 
               se = FALSE, 
-              colour = "#555555",
+              colour = app_colours$correlation_line,
               linetype = "longdash") +
   labs(x = "GDP Per Capita", 
        y = "Hunger Index") +
@@ -102,6 +116,7 @@ df_cleaned %>%
                      limits = c(0, 70)) +
   scale_x_continuous(labels = label_dollar(),
                      limits = c(0, 60000)) +
+  scale_colour_manual(values = app_colours$continent) +
   guides(size = guide_legend(title = "Population",
                              order = 1,
                              override.aes = list(alpha = 0.25)),
@@ -131,6 +146,7 @@ df_cleaned %>%
 #   scale_y_continuous(expand = expansion(mult = c(0.05, 0.05)),
 #                      limits = c(0, 50)) +
 #   scale_x_continuous(labels = label_dollar(scale_cut = cut_short_scale())) +
+#   scale_colour_manual(values = app_colours$continent) +
 #   guides(size = guide_legend(title = "Population",
 #                              order = 1,
 #                              override.aes = list(alpha = 0.25)),
@@ -166,12 +182,13 @@ df_cleaned %>%
   labs(x = "Year", 
        y = "Hunger Index") +
   scale_x_continuous(breaks = unique(df_cleaned$year)) +
+  scale_colour_manual(values = app_colours$continent) +
   guides(colour = guide_legend(title = "Continent",
                                override.aes = list(size = 4,
                                                    alpha = 0.75)))
 
 ### Put a world line to show the world average
-### Define the standard colours to all continents
+### Standardize the font families
 
 ### Check why some countries don't have a hungry index
 # According to the origin https://www.globalhungerindex.org/pdf/en/2021.pdf, some
