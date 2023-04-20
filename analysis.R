@@ -3,10 +3,15 @@ library(janitor)
 library(tidyr)
 library(ggplot2)
 library(scales)
+library(ggtext)
 
 app_colours <- list(
-  title = "#616161",
+  title = "#474747",
   axis = "#757575",
+  legend_title = "#474747",
+  legend_text = "#757575",
+  subtitle = "#757575",
+  caption = "#8f8f8f",
   main = "#1976d2",
   no_emphasis = "#757575",
   divergent = "#f57c00",
@@ -30,6 +35,11 @@ theme_minimalistic <- function() {
           axis.ticks = element_line(colour = app_colours$axis),
           axis.text = element_text(colour = app_colours$axis),
           axis.title = element_text(colour = app_colours$axis),
+          legend.title = element_text(colour = app_colours$legend_title),
+          legend.text = element_text(colour = app_colours$legend_text),
+          plot.subtitle = element_textbox_simple(colour = app_colours$subtitle),
+          plot.caption = element_text(colour = app_colours$caption),
+          plot.caption.position = "plot",
           panel.background = element_rect(fill = "transparent"),
           plot.background = element_rect(fill = "transparent", color = NA)
     )
@@ -100,9 +110,12 @@ df_cleaned %>%
               se = FALSE, 
               colour = app_colours$correlation_line,
               linetype = "longdash") +
-  labs(title = "Hunger index correlation with GDP per capita in 2021",
+  labs(title = "Globa Hunger Index correlation with GDP Per Capita in 2021",
+       subtitle = "The Global Hunger Index ranges from 0 to 100, with 0 representing no hunger. 
+       GDP is measured using constant international-dollars, accounting for cross-country price differences and inflation.",
        x = "GDP Per Capita", 
-       y = "Hunger Index") +
+       y = "Global Hunger Index",
+       caption = "Data source: https://ourworldindata.org") +
   scale_size_continuous(breaks = legend_circle_breaks, 
                         range = c(1, 17), 
                         labels = label_number(scale_cut = cut_short_scale())) +
@@ -156,8 +169,10 @@ df_cleaned %>%
             nudge_x = 1,
             key_glyph = "point") +
   labs(title = "Hunger index changes throughout the years",
+       subtitle = "The Global Hunger Index ranges from 0 to 100, with 0 representing no hunger.",
        x = "Year", 
-       y = "Hunger Index") +
+       y = "Hunger Index",
+       caption = "Data source: https://ourworldindata.org") +
   scale_x_continuous(breaks = unique(df_cleaned$year)) +
   scale_colour_manual(breaks = names(app_colours$continent),
                       values = app_colours$continent) +
@@ -166,7 +181,6 @@ df_cleaned %>%
                                                    shape = 15)))
 
 ### Standardize the font families
-### Put the data source and how GDP per capita is calculated
 
 ### Check why some countries don't have a hungry index
 # According to the origin https://www.globalhungerindex.org/pdf/en/2021.pdf, some
