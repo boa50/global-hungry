@@ -4,6 +4,8 @@ library(tidyr)
 library(ggplot2)
 library(scales)
 library(ggtext)
+library(showtext)
+showtext_auto()
 
 app_colours <- list(
   title = "#474747",
@@ -29,7 +31,11 @@ app_colours <- list(
 
 theme_minimalistic <- function() {
   theme_classic() +
-    theme(plot.title = element_text(hjust = 0, colour = app_colours$title),
+    theme(text = element_text(family = "montserrat"),
+          plot.title = element_text(hjust = 0, 
+                                    size = 20,
+                                    colour = app_colours$title,
+                                    family = "bebas-neue"),
           plot.title.position = "plot",
           axis.line = element_line(colour = app_colours$axis),
           axis.ticks = element_line(colour = app_colours$axis),
@@ -110,7 +116,7 @@ df_cleaned %>%
               se = FALSE, 
               colour = app_colours$correlation_line,
               linetype = "longdash") +
-  labs(title = "Globa Hunger Index correlation with GDP Per Capita in 2021",
+  labs(title = "Global Hunger Index correlation with GDP Per Capita in 2021",
        subtitle = "The Global Hunger Index ranges from 0 to 100, with 0 representing no hunger. 
        GDP is measured using constant international-dollars, accounting for cross-country price differences and inflation.",
        x = "GDP Per Capita", 
@@ -168,10 +174,10 @@ df_cleaned %>%
   geom_text(data = . %>% filter(year == max(.$year)), 
             nudge_x = 1,
             key_glyph = "point") +
-  labs(title = "Hunger index changes throughout the years",
+  labs(title = "Global Hunger Index changes throughout the years",
        subtitle = "The Global Hunger Index ranges from 0 to 100, with 0 representing no hunger.",
        x = "Year", 
-       y = "Hunger Index",
+       y = "Global Hunger Index",
        caption = "Data source: https://ourworldindata.org") +
   scale_x_continuous(breaks = unique(df_cleaned$year)) +
   scale_colour_manual(breaks = names(app_colours$continent),
@@ -179,8 +185,6 @@ df_cleaned %>%
   guides(colour = guide_legend(title = "Continent",
                                override.aes = list(size = 4,
                                                    shape = 15)))
-
-### Standardize the font families
 
 ### Check why some countries don't have a hungry index
 # According to the origin https://www.globalhungerindex.org/pdf/en/2021.pdf, some
