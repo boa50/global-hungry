@@ -186,6 +186,12 @@ df_cleaned %>%
                                override.aes = list(size = 4,
                                                    shape = 15)))
 
+### Actual scenario
+df_cleaned %>% 
+  filter(year %in% c(2000, 2021)) %>%
+  group_by(year) %>% 
+  summarise(hunger_index = mean(hunger_index))
+
 ### Check why some countries don't have a hungry index
 # According to the origin https://www.globalhungerindex.org/pdf/en/2021.pdf, some
 # countries don't have theses values because data to foment the index is not
