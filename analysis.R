@@ -14,8 +14,8 @@ app_colours <- list(
   legend_text = "#757575",
   subtitle = "#757575",
   caption = "#8f8f8f",
-  main = "#1976d2",
-  no_emphasis = "#757575",
+  main = "#08386b",
+  no_emphasis = "#8f8f8f",
   divergent = "#f57c00",
   line_main = "#42a5f5",
   line_complementary = "#78909c",
@@ -94,52 +94,11 @@ df_cleaned <- df_hunger_gdp %>%
   merge(y = df_continents, by = "code", all.x = TRUE) %>%
   mutate(gdp = population * gdp_per_capita)
 
-### There are some countries that don't have value in GDP column
-countries_without_gdp <- df_cleaned %>%
-  filter(is.na(gdp_per_capita)) %>%
-  select(code, country)
-
-### Check if there is some correlation between gdp per capita and hungry index
-legend_circle_breaks <- as.integer(
-  quantile(df_cleaned$population, prob = c(0.5, 0.98, 0.99))
-) %>% 
-  signif(1)
-
+### Actual scenario
 df_cleaned %>% 
-  filter(year == 2021) %>% 
-  # filter(continent == "Africa") %>%
-  filter(!is.na(gdp_per_capita)) %>%
-  ggplot(aes(x = gdp_per_capita, y = hunger_index)) +
-  geom_point(aes(size = population, colour = continent),
-             alpha = 0.8) +
-  ### Creating a linear model to show the correlation
-  geom_smooth(method = "lm", 
-              se = FALSE, 
-              colour = app_colours$correlation_line,
-              linetype = "longdash") +
-  labs(title = "Global Hunger Index correlation with GDP Per Capita in 2021",
-       subtitle = "The Global Hunger Index ranges from 0 to 100, with 0 representing no hunger. 
-       GDP is measured using constant international-dollars, accounting for cross-country price differences and inflation.",
-       x = "GDP Per Capita", 
-       y = "Global Hunger Index",
-       caption = "Data source: https://ourworldindata.org") +
-  scale_size_continuous(breaks = legend_circle_breaks, 
-                        range = c(1, 17), 
-                        labels = label_number(scale_cut = cut_short_scale())) +
-  scale_y_continuous(expand = expansion(mult = c(0.05, 0)),
-                     limits = c(0, 70)) +
-  scale_x_continuous(labels = label_dollar(),
-                     limits = c(0, 60000)) +
-  scale_colour_manual(breaks = names(app_colours$continent),
-                      values = app_colours$continent) +
-  guides(size = guide_legend(title = "Population",
-                             order = 1,
-                             override.aes = list(shape = 1,
-                                                 colour = app_colours$no_emphasis)),
-         colour = guide_legend(title = "Continent",
-                               order = 2,
-                               override.aes = list(size = 4,
-                                                   shape = 15)))
+  filter(year %in% c(2000, 2021)) %>%
+  group_by(year) %>% 
+  summarise(hunger_index = mean(hunger_index))
 
 ### Check where (continent) the hungry is still strong (maybe Africa)
 ### and check how this indexes are evolving through years
@@ -162,11 +121,11 @@ df_cleaned %>%
              label = label_number(accuracy = 1)(hunger_index))) +
   geom_line(key_glyph = "point") +
   ### Put a world line to show the world tendency
-  geom_smooth(data = df_cleaned,
-              method = "lm", 
-              se = FALSE, 
-              colour = app_colours$correlation_line,
-              linetype = "longdash") +
+  # geom_smooth(data = df_cleaned,
+  #             method = "lm",
+  #             se = FALSE,
+  #             colour = app_colours$correlation_line,
+  #             linetype = "longdash") +
   geom_point(data = . %>% filter(year %in% c(min(.$year), max(.$year))),
              size = 3) +
   geom_text(data = . %>% filter(year == min(.$year)), 
@@ -187,11 +146,83 @@ df_cleaned %>%
                                override.aes = list(size = 4,
                                                    shape = 15)))
 
-### Actual scenario
+
 df_cleaned %>% 
-  filter(year %in% c(2000, 2021)) %>%
-  group_by(year) %>% 
-  summarise(hunger_index = mean(hunger_index))
+  # filter(!(code %in% sporadic_countries)) %>%
+  group_by(continent, year) %>% 
+  summarise(hunger_index = mean(hunger_index)) %>% 
+  ggplot(aes(x = year, 
+             y = hunger_index, 
+             colour = continent,
+             label = label_number(accuracy = 1)(hunger_index))) +
+  geom_line(key_glyph = "point") +
+  ### Put a world line to show the world tendency
+  geom_smooth(data = df_cleaned,
+              method = "lm",
+              se = FALSE,
+              colour = app_colours$main,
+              linetype = "longdash") +
+  labs(title = "Global Hunger Index world trend",
+       subtitle = "The Global Hunger Index ranges from 0 to 100, with 0 representing no hunger.",
+       x = "Year", 
+       y = "Global Hunger Index",
+       caption = "Data source: https://ourworldindata.org") +
+  scale_x_continuous(breaks = unique(df_cleaned$year)) +
+  scale_colour_manual(breaks = names(app_colours$continent),
+                      values = rep(app_colours$no_emphasis, 6)) +
+  guides(colour = guide_legend(title = "Continent",
+                               override.aes = list(size = 4,
+                                                   shape = 15)))
+
+### There are some countries that don't have value in GDP column
+countries_without_gdp <- df_cleaned %>%
+  filter(is.na(gdp_per_capita)) %>%
+  select(code, country)
+
+### Check if there is some correlation between gdp per capita and hungry index
+legend_circle_breaks <- as.integer(
+  quantile(df_cleaned$population, prob = c(0.5, 0.98, 0.99))
+) %>% 
+  signif(1)
+
+df_cleaned %>% 
+  filter(year == 2021) %>% 
+  # filter(continent == "Africa") %>%
+  filter(!is.na(gdp_per_capita)) %>%
+  ggplot(aes(x = gdp_per_capita, y = hunger_index)) +
+  geom_point(aes(size = population, colour = continent),
+             alpha = 0.8) +
+  ### Creating a linear model to show the correlation
+  # geom_smooth(method = "lm", 
+  #             se = FALSE, 
+  #             colour = app_colours$correlation_line,
+  #             linetype = "longdash") +
+  labs(title = "Global Hunger Index correlation with GDP Per Capita in 2021",
+       subtitle = "The Global Hunger Index ranges from 0 to 100, with 0 representing no hunger. 
+       GDP is measured using constant international-dollars, accounting for cross-country price differences and inflation.",
+       x = "GDP Per Capita", 
+       y = "Global Hunger Index",
+       caption = "Data source: https://ourworldindata.org") +
+  scale_size_continuous(breaks = legend_circle_breaks, 
+                        range = c(1, 17), 
+                        labels = label_number(scale_cut = cut_short_scale())) +
+  scale_y_continuous(expand = expansion(mult = c(0.05, 0)),
+                     limits = c(0, 70)) +
+  scale_x_continuous(labels = label_dollar(),
+                     limits = c(0, 60000)) +
+  scale_colour_manual(breaks = names(app_colours$continent),
+                      values = app_colours$continent) +
+  # scale_colour_manual(breaks = names(app_colours$continent),
+  #                     values = c(app_colours$continent[1],
+  #                                rep(app_colours$no_emphasis, 5))) +
+  guides(size = guide_legend(title = "Population",
+                             order = 1,
+                             override.aes = list(shape = 1,
+                                                 colour = app_colours$no_emphasis)),
+         colour = guide_legend(title = "Continent",
+                               order = 2,
+                               override.aes = list(size = 4,
+                                                   shape = 15)))
 
 ### Check why some countries don't have a hungry index
 # According to the origin https://www.globalhungerindex.org/pdf/en/2021.pdf, some
